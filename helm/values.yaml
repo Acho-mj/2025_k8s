@@ -12,7 +12,7 @@ backend:
     # backend.image.repository는 백엔드의 컨테이너 이미지 저장소 이름
     repository: 551647579386.dkr.ecr.ap-northeast-2.amazonaws.com/backend-app
     # backend.image.tag는 백엔드의 컨테이너 이미지 태그 버전
-    tag: latest
+    tag: 1b59fb5
     # backend.image.pullPolicy는 이미지 풀 정책으로, Minikube에서 로컬 이미지를 사용하기 위해 Never로 설정
     pullPolicy: Always
   # backend.replicas는 백엔드 배포를 위해 실행할 복제본 Pod의 개수

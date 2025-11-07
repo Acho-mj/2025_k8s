@@ -19,7 +19,7 @@ ECR_BACKEND_REPO=${ECR_BACKEND_REPO:-backend-app}
 ECR_FRONTEND_REPO=${ECR_FRONTEND_REPO:-frontend-app}
 APP_NAME=${APP_NAME:-k8s-app}
 NAMESPACE=${NAMESPACE:-default}
-IMAGE_TAG=${IMAGE_TAG:-latest}
+IMAGE_TAG=${IMAGE_TAG:-$(git rev-parse --short HEAD)}
 
 # ECR URI
 ECR_BACKEND_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_BACKEND_REPO}"
@@ -121,6 +121,7 @@ push_image() {
         sudo docker push "${uri}:${IMAGE_TAG}"
     else
         docker push "${uri}:${IMAGE_TAG}"
+        docker push "${uri}:latest"
     fi
     log_info "${service} 이미지 푸시 완료"
 }
@@ -128,23 +129,21 @@ push_image() {
 # values.yaml 업데이트
 update_values() {
     log_info "values.yaml 업데이트 중"
-    
-    # 백업 생성
-    cp helm/values.yaml helm/values.yaml.bak
-    
-    # 이미지 경로 업데이트
+
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        # macOS
         sed -i '' "s|repository: backend-app|repository: ${ECR_BACKEND_URI}|g" helm/values.yaml
+        sed -i '' "0,/backend:/s|tag: .*|tag: ${IMAGE_TAG}|" helm/values.yaml
         sed -i '' "s|repository: frontend-app|repository: ${ECR_FRONTEND_URI}|g" helm/values.yaml
+        sed -i '' "0,/frontend:/s|tag: .*|tag: ${IMAGE_TAG}|" helm/values.yaml
         sed -i '' "s|pullPolicy: Never|pullPolicy: Always|g" helm/values.yaml
     else
-        # Linux
         sed -i "s|repository: backend-app|repository: ${ECR_BACKEND_URI}|g" helm/values.yaml
+        sed -i "0,/backend:/s|tag: .*|tag: ${IMAGE_TAG}|" helm/values.yaml
         sed -i "s|repository: frontend-app|repository: ${ECR_FRONTEND_URI}|g" helm/values.yaml
+        sed -i "0,/frontend:/s|tag: .*|tag: ${IMAGE_TAG}|" helm/values.yaml
         sed -i "s|pullPolicy: Never|pullPolicy: Always|g" helm/values.yaml
     fi
-    
+
     log_info "values.yaml 업데이트 완료"
 }
 
